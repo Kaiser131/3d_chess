@@ -1,0 +1,18 @@
+# Build outputs
+/build/
+/out/
+
+# Visual Studio
+/.vs/
+*.vcxproj*
+*.sln
+CMakeSettings.json
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+# Misc
+*.user
+*.log
