@@ -2,6 +2,12 @@
 
 Interactive 3D chess demo with basic chess rules, mouse picking, camera orbit controls, and fixed-function OpenGL lighting.
 
+## Easy run in Code::Blocks (recommended for demos)
+
+This repo also includes a **freeglut/GLUT build** specifically to make Code::Blocks usage simple:
+- Open `codeblocks/3d_chess_glut.cbp`
+- Follow the short guide in `CODEBLOCKS_SETUP.md`
+
 ## Build (Windows)
 
 Prereqs:

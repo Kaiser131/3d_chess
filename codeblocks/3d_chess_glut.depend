@@ -1,0 +1,68 @@
+# depslib dependency file v1.0
+1778251109 source:c:\projects\glut\3d_chess\src\input.cpp
+	"Input.h"
+
+1778251109 c:\projects\glut\3d_chess\src\input.h
+	"Camera.h"
+
+1778251109 c:\projects\glut\3d_chess\src\camera.h
+	"Math.h"
+
+1778251857 c:\projects\glut\3d_chess\src\math.h
+	<cmath>
+
+1778251766 source:c:\projects\glut\3d_chess\src\board.cpp
+	"Board.h"
+	<algorithm>
+
+1778251766 c:\projects\glut\3d_chess\src\board.h
+	"Piece.h"
+	<array>
+	<memory>
+	<vector>
+
+1778251949 c:\projects\glut\3d_chess\src\piece.h
+	<vector>
+
+1778251766 source:c:\projects\glut\3d_chess\src\camera.cpp
+	"Camera.h"
+	<cmath>
+
+1778252112 source:c:\projects\glut\3d_chess\src\main_glut.cpp
+	"GlutGame.h"
+	<windows.h>
+	<GLUT/glut.h>
+	<GL/glut.h>
+	<memory>
+
+1778251403 c:\projects\glut\3d_chess\src\glutgame.h
+	"Board.h"
+	"Camera.h"
+	"Input.h"
+	"Renderer.h"
+
+1778251766 c:\projects\glut\3d_chess\src\renderer.h
+	"Board.h"
+	"Camera.h"
+	<vector>
+
+1778252559 source:c:\projects\glut\3d_chess\src\glutgame.cpp
+	"GlutGame.h"
+	<windows.h>
+	<GLUT/glut.h>
+	<GL/glut.h>
+	<cstdio>
+
+1778251949 source:c:\projects\glut\3d_chess\src\piece.cpp
+	"Piece.h"
+	"Board.h"
+	<array>
+
+1778252419 source:c:\projects\glut\3d_chess\src\renderer.cpp
+	"Renderer.h"
+	<windows.h>
+	<OpenGL/glu.h>
+	<GL/glu.h>
+	<algorithm>
+	<cmath>
+

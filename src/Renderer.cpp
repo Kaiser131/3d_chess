@@ -1,11 +1,11 @@
 #include "Renderer.h"
 
 #ifdef _WIN32
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <windows.h>
 #endif
-
-#include <GLFW/glfw3.h>
 
 #ifdef __APPLE__
 #include <OpenGL/glu.h>
@@ -38,7 +38,9 @@ void Renderer::initGL() {
   glEnable(GL_COLOR_MATERIAL);
   glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
+  #ifdef GL_MULTISAMPLE
   glEnable(GL_MULTISAMPLE);
+  #endif
 
   GLfloat ambient[] = {0.25f, 0.25f, 0.25f, 1.0f};
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
@@ -94,10 +96,6 @@ void Renderer::cacheMatrices() const {
   glGetDoublev(GL_PROJECTION_MATRIX, projection_);
 }
 
-static bool containsSquare(const std::vector<Square>& v, Square s) {
-  return std::any_of(v.begin(), v.end(), [&](const Square& a) { return a == s; });
-}
-
 void Renderer::drawScene(const Board& board, const RenderSelection& selection) {
   drawBoard(selection);
   drawPieces(board, selection);
@@ -145,22 +143,23 @@ void Renderer::setMaterialForPiece(PieceColor color, bool selected) const {
 
 void Renderer::drawTile(int file, int rank, bool dark, bool highlight) const {
   Vec3 c = squareCenter(file, rank);
-  float y = 0.001f;
+  float y = 0.0f;
 
   setMaterialForTile(dark, highlight);
 
   glBegin(GL_QUADS);
   glNormal3f(0.0f, 1.0f, 0.0f);
+  // CCW winding when viewed from +Y
   glVertex3f(c.x - 0.5f, y, c.z - 0.5f);
-  glVertex3f(c.x + 0.5f, y, c.z - 0.5f);
-  glVertex3f(c.x + 0.5f, y, c.z + 0.5f);
   glVertex3f(c.x - 0.5f, y, c.z + 0.5f);
+  glVertex3f(c.x + 0.5f, y, c.z + 0.5f);
+  glVertex3f(c.x + 0.5f, y, c.z - 0.5f);
   glEnd();
 }
 
 void Renderer::drawHighlightMarker(int file, int rank, bool isCapture) const {
   Vec3 c = squareCenter(file, rank);
-  float y = 0.002f;
+  float y = 0.001f;
 
   glDisable(GL_LIGHTING);
   glEnable(GL_BLEND);
@@ -174,10 +173,11 @@ void Renderer::drawHighlightMarker(int file, int rank, bool isCapture) const {
 
   // draw a slightly inset quad
   glBegin(GL_QUADS);
+  // CCW winding when viewed from +Y
   glVertex3f(c.x - 0.35f, y, c.z - 0.35f);
-  glVertex3f(c.x + 0.35f, y, c.z - 0.35f);
-  glVertex3f(c.x + 0.35f, y, c.z + 0.35f);
   glVertex3f(c.x - 0.35f, y, c.z + 0.35f);
+  glVertex3f(c.x + 0.35f, y, c.z + 0.35f);
+  glVertex3f(c.x + 0.35f, y, c.z - 0.35f);
   glEnd();
 
   glDisable(GL_BLEND);
@@ -190,7 +190,7 @@ void Renderer::drawBoard(const RenderSelection& selection) {
     glPushMatrix();
     // Centered at origin; spans 8x8, with a small margin
     float half = 4.2f;
-    float topY = 0.0f;
+    float topY = -0.06f;
     float bottomY = -0.45f;
 
     glDisable(GL_COLOR_MATERIAL);
@@ -203,10 +203,11 @@ void Renderer::drawBoard(const RenderSelection& selection) {
     glBegin(GL_QUADS);
     // top
     glNormal3f(0, 1, 0);
+    // CCW winding when viewed from +Y
     glVertex3f(-half, topY, -half);
-    glVertex3f(half, topY, -half);
-    glVertex3f(half, topY, half);
     glVertex3f(-half, topY, half);
+    glVertex3f(half, topY, half);
+    glVertex3f(half, topY, -half);
     // bottom
     glNormal3f(0, -1, 0);
     glVertex3f(-half, bottomY, -half);
@@ -246,7 +247,7 @@ void Renderer::drawBoard(const RenderSelection& selection) {
   for (int f = 0; f < 8; ++f) {
     for (int r = 0; r < 8; ++r) {
       bool dark = ((f + r) % 2) == 1;
-      bool highlight = selection.selected.has_value() && selection.selected->file == f && selection.selected->rank == r;
+      bool highlight = selection.hasSelected && selection.selected.file == f && selection.selected.rank == r;
       drawTile(f, r, dark, highlight);
     }
   }
@@ -265,7 +266,7 @@ void Renderer::drawPieces(const Board& board, const RenderSelection& selection) 
       const Piece* p = board.at(sq);
       if (!p) continue;
 
-      bool isSelected = selection.selected.has_value() && *selection.selected == sq;
+      bool isSelected = selection.hasSelected && (selection.selected == sq);
       setMaterialForPiece(p->color, isSelected);
 
       Vec3 c = squareCenter(f, r);
@@ -585,6 +586,6 @@ bool Renderer::screenToBoardSquare(double mouseX, double mouseY, int width, int 
 
   if (file < 0 || file > 7 || rank < 0 || rank > 7) return false;
 
-  outSquare = {file, rank};
+  outSquare = Square(file, rank);
   return true;
 }

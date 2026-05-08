@@ -19,6 +19,9 @@ struct Square {
   int file = 0; // 0..7 (a..h)
   int rank = 0; // 0..7 (white home rank = 0)
 
+  Square() {}
+  Square(int f, int r) : file(f), rank(r) {}
+
   bool operator==(const Square& o) const { return file == o.file && rank == o.rank; }
 };
 

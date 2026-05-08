@@ -1,6 +1,5 @@
 #include "Camera.h"
 
-#include <algorithm>
 #include <cmath>
 
 #ifndef M_PI
@@ -8,6 +7,10 @@
 #endif
 
 static float degToRad(float d) { return d * static_cast<float>(M_PI) / 180.0f; }
+
+static float clampf(float v, float lo, float hi) {
+  return (v < lo) ? lo : (v > hi) ? hi : v;
+}
 
 void Camera::reset() {
   yawDeg = -45.0f;
@@ -18,11 +21,11 @@ void Camera::reset() {
 
 void Camera::orbit(float deltaYawDeg, float deltaPitchDeg) {
   yawDeg += deltaYawDeg;
-  pitchDeg = std::clamp(pitchDeg + deltaPitchDeg, -10.0f, 85.0f);
+  pitchDeg = clampf(pitchDeg + deltaPitchDeg, -10.0f, 85.0f);
 }
 
 void Camera::zoom(float delta) {
-  distance = std::clamp(distance + delta, 7.0f, 40.0f);
+  distance = clampf(distance + delta, 7.0f, 40.0f);
 }
 
 Vec3 Camera::position() const {

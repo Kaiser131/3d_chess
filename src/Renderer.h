@@ -3,11 +3,11 @@
 #include "Board.h"
 #include "Camera.h"
 
-#include <optional>
 #include <vector>
 
 struct RenderSelection {
-  std::optional<Square> selected;
+  bool hasSelected = false;
+  Square selected{};
   std::vector<Square> validMoves;
 };
 

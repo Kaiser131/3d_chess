@@ -93,18 +93,19 @@ void ChessGame::onFramebufferSize(int w, int h) {
 }
 
 void ChessGame::clearSelection() {
-  selection.selected.reset();
+  selection.hasSelected = false;
   selection.validMoves.clear();
 }
 
 void ChessGame::selectSquare(Square sq) {
+  selection.hasSelected = true;
   selection.selected = sq;
   selection.validMoves = board.legalMovesFrom(sq);
 }
 
 void ChessGame::tryMoveTo(Square to) {
-  if (!selection.selected.has_value()) return;
-  Square from = *selection.selected;
+  if (!selection.hasSelected) return;
+  Square from = selection.selected;
 
   if (board.tryMakeMove(from, to)) {
     clearSelection();
@@ -155,7 +156,7 @@ void ChessGame::onMouseButton(int button, int action, int /*mods*/) {
     }
 
     // Second click: try move
-    if (selection.selected.has_value() && *selection.selected == hit) {
+    if (selection.hasSelected && selection.selected == hit) {
       clearSelection();
       return;
     }

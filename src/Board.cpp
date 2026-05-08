@@ -6,12 +6,12 @@ Board::Board() { reset(); }
 
 static std::unique_ptr<Piece> makePiece(PieceType t, PieceColor c) {
   switch (t) {
-    case PieceType::King: return std::make_unique<KingPiece>(c);
-    case PieceType::Queen: return std::make_unique<QueenPiece>(c);
-    case PieceType::Rook: return std::make_unique<RookPiece>(c);
-    case PieceType::Bishop: return std::make_unique<BishopPiece>(c);
-    case PieceType::Knight: return std::make_unique<KnightPiece>(c);
-    case PieceType::Pawn: return std::make_unique<PawnPiece>(c);
+    case PieceType::King: return std::unique_ptr<Piece>(new KingPiece(c));
+    case PieceType::Queen: return std::unique_ptr<Piece>(new QueenPiece(c));
+    case PieceType::Rook: return std::unique_ptr<Piece>(new RookPiece(c));
+    case PieceType::Bishop: return std::unique_ptr<Piece>(new BishopPiece(c));
+    case PieceType::Knight: return std::unique_ptr<Piece>(new KnightPiece(c));
+    case PieceType::Pawn: return std::unique_ptr<Piece>(new PawnPiece(c));
   }
   return nullptr;
 }
