@@ -25,6 +25,9 @@ struct Renderer {
   bool screenToBoardSquare(double mouseX, double mouseY, int width, int height, Square& outSquare) const;
 
 private:
+  int frameWidth_ = 0;
+  int frameHeight_ = 0;
+
   // Cached matrices for gluUnProject
   mutable int viewport_[4]{};
   mutable double modelview_[16]{};
@@ -34,6 +37,9 @@ private:
 
   void drawBoard(const RenderSelection& selection);
   void drawPieces(const Board& board, const RenderSelection& selection);
+
+  void drawHud(const Board& board);
+  void drawText2D(int x, int y, const char* text, float pixelSize);
 
   void setMaterialForTile(bool dark, bool highlight) const;
   void setMaterialForPiece(PieceColor color, bool selected) const;

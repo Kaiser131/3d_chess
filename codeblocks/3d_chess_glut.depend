@@ -41,12 +41,12 @@
 	"Input.h"
 	"Renderer.h"
 
-1778251766 c:\projects\glut\3d_chess\src\renderer.h
+1778353826 c:\projects\glut\3d_chess\src\renderer.h
 	"Board.h"
 	"Camera.h"
 	<vector>
 
-1778252559 source:c:\projects\glut\3d_chess\src\glutgame.cpp
+1778252893 source:c:\projects\glut\3d_chess\src\glutgame.cpp
 	"GlutGame.h"
 	<windows.h>
 	<GLUT/glut.h>
@@ -58,7 +58,7 @@
 	"Board.h"
 	<array>
 
-1778252419 source:c:\projects\glut\3d_chess\src\renderer.cpp
+1778353851 source:c:\projects\glut\3d_chess\src\renderer.cpp
 	"Renderer.h"
 	<windows.h>
 	<OpenGL/glu.h>

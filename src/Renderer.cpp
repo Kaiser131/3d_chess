@@ -61,6 +61,9 @@ void Renderer::resize(int width, int height) {
 }
 
 void Renderer::beginFrame(const Camera& camera, int width, int height) {
+  frameWidth_ = width;
+  frameHeight_ = height;
+
   glViewport(0, 0, width, height);
 
   glClearColor(0.08f, 0.09f, 0.10f, 1.0f);
@@ -99,6 +102,159 @@ void Renderer::cacheMatrices() const {
 void Renderer::drawScene(const Board& board, const RenderSelection& selection) {
   drawBoard(selection);
   drawPieces(board, selection);
+
+  drawHud(board);
+}
+
+// 5x7 font (A-Z, '?' and space). Each row uses bits 0..4 (LSB = leftmost pixel).
+static const unsigned char kFont5x7_AZ[26][7] = {
+    // A
+    {0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11},
+    // B
+    {0x1E, 0x11, 0x11, 0x1E, 0x11, 0x11, 0x1E},
+    // C
+    {0x0E, 0x11, 0x10, 0x10, 0x10, 0x11, 0x0E},
+    // D
+    {0x1E, 0x11, 0x11, 0x11, 0x11, 0x11, 0x1E},
+    // E
+    {0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x1F},
+    // F
+    {0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x10},
+    // G
+    {0x0E, 0x11, 0x10, 0x17, 0x11, 0x11, 0x0E},
+    // H
+    {0x11, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11},
+    // I
+    {0x0E, 0x04, 0x04, 0x04, 0x04, 0x04, 0x0E},
+    // J
+    {0x07, 0x02, 0x02, 0x02, 0x12, 0x12, 0x0C},
+    // K
+    {0x11, 0x12, 0x14, 0x18, 0x14, 0x12, 0x11},
+    // L
+    {0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x1F},
+    // M
+    {0x11, 0x1B, 0x15, 0x15, 0x11, 0x11, 0x11},
+    // N
+    {0x11, 0x19, 0x15, 0x13, 0x11, 0x11, 0x11},
+    // O
+    {0x0E, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E},
+    // P
+    {0x1E, 0x11, 0x11, 0x1E, 0x10, 0x10, 0x10},
+    // Q
+    {0x0E, 0x11, 0x11, 0x11, 0x15, 0x12, 0x0D},
+    // R
+    {0x1E, 0x11, 0x11, 0x1E, 0x14, 0x12, 0x11},
+    // S
+    {0x0F, 0x10, 0x10, 0x0E, 0x01, 0x01, 0x1E},
+    // T
+    {0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04},
+    // U
+    {0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0x0E},
+    // V
+    {0x11, 0x11, 0x11, 0x11, 0x11, 0x0A, 0x04},
+    // W
+    {0x11, 0x11, 0x11, 0x15, 0x15, 0x15, 0x0A},
+    // X
+    {0x11, 0x11, 0x0A, 0x04, 0x0A, 0x11, 0x11},
+    // Y
+    {0x11, 0x11, 0x0A, 0x04, 0x04, 0x04, 0x04},
+    // Z
+    {0x1F, 0x01, 0x02, 0x04, 0x08, 0x10, 0x1F},
+};
+
+static const unsigned char kFont5x7_Question[7] = {0x0E, 0x11, 0x01, 0x02, 0x04, 0x00, 0x04};
+
+static const unsigned char* glyph5x7(char c) {
+  if (c >= 'a' && c <= 'z') c = static_cast<char>(c - 'a' + 'A');
+  if (c >= 'A' && c <= 'Z') return kFont5x7_AZ[c - 'A'];
+  if (c == ' ') return nullptr;
+  return kFont5x7_Question;
+}
+
+void Renderer::drawText2D(int x, int y, const char* text, float pixelSize) {
+  if (!text || pixelSize <= 0.0f) return;
+  if (frameWidth_ <= 0 || frameHeight_ <= 0) return;
+
+  const int charW = static_cast<int>(std::round(6.0f * pixelSize)); // 5 px + 1 px spacing
+  const int charH = static_cast<int>(std::round(8.0f * pixelSize)); // 7 px + 1 px spacing
+  (void)charH;
+
+  // Save GL state that we touch.
+  GLboolean wasLighting = glIsEnabled(GL_LIGHTING);
+  GLboolean wasDepth = glIsEnabled(GL_DEPTH_TEST);
+  GLboolean wasCull = glIsEnabled(GL_CULL_FACE);
+  GLboolean wasBlend = glIsEnabled(GL_BLEND);
+
+  glDisable(GL_LIGHTING);
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_CULL_FACE);
+  glDisable(GL_BLEND);
+
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glOrtho(0.0, static_cast<double>(frameWidth_), 0.0, static_cast<double>(frameHeight_), -1.0, 1.0);
+
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+
+  glColor3f(0.96f, 0.96f, 0.96f);
+
+  int cursorX = x;
+  int cursorY = y;
+
+  for (const char* p = text; *p; ++p) {
+    if (*p == '\n') {
+      cursorX = x;
+      cursorY -= static_cast<int>(std::round(10.0f * pixelSize));
+      continue;
+    }
+
+    const unsigned char* g = glyph5x7(*p);
+    if (g) {
+      for (int row = 0; row < 7; ++row) {
+        unsigned char bits = g[row];
+        for (int col = 0; col < 5; ++col) {
+          // Glyphs are encoded with bit 4 as the leftmost pixel.
+          if ((bits & (1u << (4 - col))) == 0) continue;
+
+          float px = static_cast<float>(cursorX) + static_cast<float>(col) * pixelSize;
+          float py = static_cast<float>(cursorY) + static_cast<float>(6 - row) * pixelSize;
+          glBegin(GL_QUADS);
+          glVertex2f(px, py);
+          glVertex2f(px + pixelSize, py);
+          glVertex2f(px + pixelSize, py + pixelSize);
+          glVertex2f(px, py + pixelSize);
+          glEnd();
+        }
+      }
+    }
+
+    cursorX += charW;
+  }
+
+  glPopMatrix();
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+
+  if (wasLighting) glEnable(GL_LIGHTING);
+  if (wasDepth) glEnable(GL_DEPTH_TEST);
+  if (wasCull) glEnable(GL_CULL_FACE);
+  if (wasBlend) glEnable(GL_BLEND);
+}
+
+void Renderer::drawHud(const Board& board) {
+  if (frameWidth_ <= 0 || frameHeight_ <= 0) return;
+
+  const char* text = (board.sideToMove == PieceColor::White) ? "white play" : "black turn";
+
+  const int margin = 12;
+  const float px = 2.0f;
+  // y is bottom-left origin in ortho; place near top-left.
+  const int baselineY = frameHeight_ - margin - static_cast<int>(std::round(7.0f * px));
+  drawText2D(margin, baselineY, text, px);
 }
 
 void Renderer::setMaterialForTile(bool dark, bool highlight) const {
